@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador Lexico</title>
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1>Analizador Lexico</h1>
+    <div class="container">      
+    <div class="input-container">
+        <h2>Entrada</h2>
+        <textarea id="input-text" rows="10" style="width: 100%;">si x == 10 { imprimir(x); }</textarea>
+      <div class="button-container">  
+        <button id="analyze-button" onclick="ejecutarScript()" class="btn"><i class="animation"></i>Analizar<i class="animation"></i></button>
+    </div>
+    </div>
+    <div class="output-container">
+        <h2>Salida</h2>
+        <textarea id="output-text" rows="20" style="width: 100%;" readonly></textarea>
+    </div>
+    </div>
+
+
+
+    <footer>En mis principios de la prepa escuche una frase la cual hizo eco en mi y marco mi vida.
+        <br> "Si lo imaginas lo puedes programar" 
+        <br>- Alejandro Taboada
+        <br> Y al menos asta el momento es correcto.
+    </footer>
+
+    <py-script>
+        import re
+
+        # Definimos los patrones y sus acciones
+        token_patterns = [
+            (r'\b(si|sino|mientras|para|función|retorno|clase|importar|verdadero|falso)\b', 'PALABRA_CLAVE'),
+            (r'[a-zA-Z_][a-zA-Z0-9_]*', 'IDENTIFICADOR'),
+            (r'\d+(\.\d+)?', 'NUMERO'),
+            (r'==|!=|<=|>=|<|>|=|\+|\-|\*|/', 'OPERADOR'),
+            (r'[{}();,]', 'SIMBOLO_ESPECIAL'),
+            (r'#.*', 'COMENTARIO'),
+            (r'\s+', None), # Ignorar espacios en blanco
+        ]
+
+        # Definimos la función analizador_lexico
+        def analizador_lexico(texto):
+            tokens = []
+            while texto:
+                match = None
+                for token_regex, token_tipo in token_patterns:
+                    match = re.match(token_regex, texto)
+                    if match:
+                        if token_tipo: # Ignorar None (espacios en blanco)
+                            tokens.append((match.group(0), token_tipo))
+                        texto = texto[match.end():]
+                        break
+                if not match:
+                    raise ValueError(f'Error léxico: {texto[0]} en "{texto}"')
+            return tokens
+
+        # Definimos la función para procesar el texto de entrada
+        def procesar_entrada(input_text):
+            try:
+                tokens = analizador_lexico(input_text)
+                output_text = '\n'.join([f"{token[0]} - {token[1]}" for token in tokens])
+            except ValueError as e:
+                output_text = str(e)
+            return output_text
+
+        # Registramos la función procesar_entrada en PyScript
+        from js import window
+        window.procesarEntrada = procesar_entrada
+    </py-script>
+
+    <script>
+        function ejecutarScript() {
+            const inputText = document.getElementById('input-text').value;
+            const outputText = window.procesarEntrada(inputText);
+            document.getElementById('output-text').value = outputText;
+        }
+    </script>
+</body>
+
+</html>
